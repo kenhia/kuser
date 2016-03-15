@@ -59,3 +59,31 @@ function Set-LocationHelper {
   }
 }
 
+function Test-IsAdmin {
+<#
+.SYNOPSIS
+  Tests if script is running with elevated privilege
+.NOTES
+  This seems to be overkill and possibly problematic way of doing this.
+#>
+
+  $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+  $principal = [Security.Principal.WindowsPrincipal] $identity
+  $principal.IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')
+}
+
+function prompt { 
+
+  if (test-path variable:/PSDebugContext) {
+    $isDebug = $true
+  }
+  $currentDirectory = get-location
+  $dirColor = 'Cyan'
+  if (Test-IsAdmin) { $dirColor = 'Yellow' }
+  if ($isDebug) { $dirColor = 'Magenta' }
+  Write-Host '[' -ForegroundColor Gray -NoNewline
+  Write-Host "$currentDirectory" -ForegroundColor $dirColor -NoNewline
+  Write-Host ']' -ForegroundColor Gray
+  Write-host ':' -ForegroundColor Gray -NoNewline
+  return ' '
+}
