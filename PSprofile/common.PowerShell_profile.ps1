@@ -1,5 +1,10 @@
 #Requires -Version 3
 
+# Would like to get this from $MyInvocation, but haven't found a way to
+# make it work right when being dot-sourced
+$Global:commonprofile = Join-Path -Path $PSScriptRoot -ChildPath common.PowerShell_profile.ps1
+
+
 function Add-ToEnvPath {
   Param(
   [Parameter(Mandatory=$true)]
@@ -18,19 +23,6 @@ function Add-ToEnvPath {
   }
   $env:Path = "$env:Path;$Path"
 }
-
-function Add-GitPath {
-  Add-ToEnvPath -Path 'C:\Program Files\Git\bin'
-}
-
-function Set-Aliases {
-  $aliases = . (Join-Path -Path $PSScriptRoot -ChildPath aliases.ps1)
-  foreach ($key in $aliases.Keys) {
-    Write-Verbose "Set-Alias -Name $key -Value $($aliases[$key]) -Scope Global"
-    Set-Alias -Name $key -Value $aliases[$key] -Scope Global
-  }
-}
-Set-Aliases
 
 function Set-LocationHelper {
   Param($Subdir)
@@ -59,6 +51,15 @@ function Set-LocationHelper {
   }
 }
 
+function Set-Aliases {
+  $aliases = . (Join-Path -Path $PSScriptRoot -ChildPath aliases.ps1)
+  foreach ($key in $aliases.Keys) {
+    Write-Verbose "Set-Alias -Name $key -Value $($aliases[$key]) -Scope Global"
+    Set-Alias -Name $key -Value $aliases[$key] -Scope Global
+  }
+}
+Set-Aliases
+
 function Test-IsAdmin {
 <#
 .SYNOPSIS
@@ -83,7 +84,12 @@ function prompt {
   if ($isDebug) { $dirColor = 'Magenta' }
   Write-Host '[' -ForegroundColor Gray -NoNewline
   Write-Host "$currentDirectory" -ForegroundColor $dirColor -NoNewline
-  Write-Host ']' -ForegroundColor Gray
+  Write-Host '] ' -ForegroundColor Gray -NoNewline
+  Write-VcsStatus
+  Write-Host
   Write-host ':' -ForegroundColor Gray -NoNewline
   return ' '
 }
+
+Import-Module posh-git
+Start-SshAgent -Quiet
